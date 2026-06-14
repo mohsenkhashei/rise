@@ -1,12 +1,11 @@
 /**
  * Rise - Browser Extension New Tab Script
  * Core Features:
- * - Fliqlo-style horizontal flip clock
+ * - Fliqlo-style horizontal flip clock (12h & 24h support)
  * - Daily cached quote and wallpaper fetched from GitHub
- * - Standardized schema (text and author)
- * - Fetch hardening with 2.5s AbortController timeout
- * - Adaptive layout: text-length checks for long quotes
- * - Smooth visual loading: safety-timer controlled fade-in (no unstyled flash)
+ * - Settings panel: persistent layout toggles (Clock, Quote, Wallpaper, Format)
+ * - Fetch hardening: 2.5s timeout abort limits
+ * - Responsive layout viewport adjustments & staggered visual animations
  */
 
 // --- GitHub Data Repository Configurations ---
@@ -15,6 +14,14 @@
 const GITHUB_USERNAME = 'YOUR-GITHUB-USERNAME'; 
 const QUOTES_URL = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/rise-data/main/quotes.json`;
 const WALLPAPERS_URL = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/rise-data/main/wallpapers.json`;
+
+// --- Configuration & Default Settings ---
+let settings = {
+  showClock: true,
+  showQuote: true,
+  showWallpaper: true,
+  use24h: true
+};
 
 // --- Curated Fallbacks (For Offline Use or Prior to Repository Setup) ---
 const FALLBACK_QUOTES = [
@@ -539,11 +546,27 @@ const storage = {
   }
 };
 
+// Global clock tick trigger variable
+let clockTriggerFunc = null;
+
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
-  initClock();
-  initContent();
-  initControls();
+  // 1. Load configuration and apply layouts before rendering content
+  storage.get(['settings'], (res) => {
+    if (res.settings) {
+      settings = { ...settings, ...res.settings };
+    }
+    applySettings();
+    syncSettingsUI();
+    
+    // 2. Initialize modules
+    initClock();
+    initContent();
+    initControls();
+    
+    // 3. Reveal control bar staggered in CSS
+    document.querySelector('.controls-container').classList.add('loaded');
+  });
 });
 
 // --- Fliqlo Clock Engine ---
@@ -556,7 +579,15 @@ function initClock() {
   
   function updateClock() {
     const now = new Date();
-    const hours = String(now.getHours()).padStart(2, '0');
+    let hoursInt = now.getHours();
+    
+    // Convert 24h to 12h format if requested
+    if (!settings.use24h) {
+      hoursInt = hoursInt % 12;
+      if (hoursInt === 0) hoursInt = 12;
+    }
+    
+    const hours = String(hoursInt).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
     
     if (hours !== currentHours) {
@@ -571,11 +602,12 @@ function initClock() {
   }
   
   // Set initial static states immediately
-  const now = new Date();
-  currentHours = String(now.getHours()).padStart(2, '0');
-  currentMinutes = String(now.getMinutes()).padStart(2, '0');
-  setCardElements(hoursCard, currentHours);
-  setCardElements(minutesCard, currentMinutes);
+  updateClock();
+  
+  // Save reference to trigger immediate update on toggle format click
+  clockTriggerFunc = () => {
+    updateClock();
+  };
   
   // Tick every second
   setInterval(updateClock, 1000);
@@ -659,7 +691,6 @@ async function fetchWithTimeout(url, timeoutMs = 2500) {
 async function fetchRemoteContent(todayStr) {
   let quotes = FALLBACK_QUOTES;
   let wallpapers = FALLBACK_WALLPAPERS;
-  let isFetchSuccess = false;
   
   try {
     // Attempt parallel fetches with 2.5s timeout each
@@ -676,7 +707,6 @@ async function fetchRemoteContent(todayStr) {
       wallpapers = remoteWallpapers;
     }
     
-    isFetchSuccess = true;
     console.log("Rise: Successfully loaded remote assets.");
   } catch (err) {
     console.warn("Rise: Remote fetch timed out or failed. Using fallback assets. Error:", err.message);
@@ -712,9 +742,11 @@ function displayContent(quote, wallpaper) {
     quoteBox.classList.remove('long-quote');
   }
   
-  // Populate photo attribution details
+  // Populate photo attribution details (resilient mapping to credit, photographer, and location fields)
   const attributionElement = document.getElementById('wallpaper-credit');
-  if (wallpaper.location && wallpaper.photographer) {
+  if (wallpaper.credit) {
+    attributionElement.textContent = wallpaper.credit;
+  } else if (wallpaper.location && wallpaper.photographer) {
     attributionElement.textContent = `${wallpaper.location} · By ${wallpaper.photographer}`;
   } else if (wallpaper.photographer) {
     attributionElement.textContent = `Photo by ${wallpaper.photographer}`;
@@ -732,7 +764,7 @@ function displayContent(quote, wallpaper) {
     if (animationTriggered) return;
     animationTriggered = true;
     
-    // Add loaded classes to trigger smooth CSS opacity transitions
+    // Add loaded classes to trigger staggered CSS transitions
     wallpaperContainer.classList.add('loaded');
     container.classList.add('loaded');
     quoteBox.classList.add('loaded');
@@ -766,10 +798,112 @@ function displayContent(quote, wallpaper) {
   img.src = wallpaper.url;
 }
 
+// --- Preferences / Configuration Settings Logic ---
+
+function applySettings() {
+  const body = document.body;
+  
+  // Toggle visibility layout control classes
+  if (settings.showClock) {
+    body.classList.remove('hide-clock');
+  } else {
+    body.classList.add('hide-clock');
+  }
+  
+  if (settings.showQuote) {
+    body.classList.remove('hide-quote');
+  } else {
+    body.classList.add('hide-quote');
+  }
+  
+  if (settings.showWallpaper) {
+    body.classList.remove('hide-wallpaper');
+  } else {
+    body.classList.add('hide-wallpaper');
+  }
+  
+  // Refresh clock format immediately if initialized
+  if (clockTriggerFunc) {
+    clockTriggerFunc();
+  }
+}
+
+function syncSettingsUI() {
+  // Sync the switch visual and accessibility toggle states
+  updateSwitchUI('toggle-clock', settings.showClock);
+  updateSwitchUI('toggle-quote', settings.showQuote);
+  updateSwitchUI('toggle-wallpaper', settings.showWallpaper);
+  updateSwitchUI('toggle-24h', settings.use24h);
+}
+
+function updateSwitchUI(switchId, isChecked) {
+  const btn = document.getElementById(switchId);
+  if (!btn) return;
+  btn.setAttribute('aria-checked', isChecked ? "true" : "false");
+}
+
+function saveSettings() {
+  storage.set({ settings }, () => {
+    console.log("Rise: Saved settings configuration state.");
+  });
+}
+
 // --- Interactive Buttons & Controls ---
 function initControls() {
   const refreshBtn = document.getElementById('refresh-btn');
+  const settingsBtn = document.getElementById('settings-btn');
+  const settingsPanel = document.getElementById('settings-panel');
+  
+  // Refresh Content
   refreshBtn.addEventListener('click', () => {
-    loadDailyContent(true); // Bypass cache and fetch fresh remote items
+    loadDailyContent(true);
+  });
+  
+  // Toggle Settings Panel Expand/Collapse
+  settingsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isOpen = settingsPanel.classList.toggle('open');
+    settingsBtn.setAttribute('aria-expanded', isOpen ? "true" : "false");
+    settingsPanel.setAttribute('aria-hidden', isOpen ? "false" : "true");
+  });
+  
+  // Close Settings Panel when clicking outside
+  document.addEventListener('click', (e) => {
+    if (settingsPanel.classList.contains('open') && 
+        !settingsPanel.contains(e.target) && 
+        !settingsBtn.contains(e.target)) {
+      settingsPanel.classList.remove('open');
+      settingsBtn.setAttribute('aria-expanded', 'false');
+      settingsPanel.setAttribute('aria-hidden', 'true');
+    }
+  });
+  
+  // Panel Switch toggles
+  document.getElementById('toggle-clock').addEventListener('click', function() {
+    settings.showClock = !settings.showClock;
+    applySettings();
+    updateSwitchUI(this.id, settings.showClock);
+    saveSettings();
+  });
+  
+  document.getElementById('toggle-quote').addEventListener('click', function() {
+    settings.showQuote = !settings.showQuote;
+    applySettings();
+    updateSwitchUI(this.id, settings.showQuote);
+    saveSettings();
+  });
+  
+  document.getElementById('toggle-wallpaper').addEventListener('click', function() {
+    settings.showWallpaper = !settings.showWallpaper;
+    applySettings();
+    updateSwitchUI(this.id, settings.showWallpaper);
+    saveSettings();
+  });
+  
+  document.getElementById('toggle-24h').addEventListener('click', function() {
+    settings.use24h = !settings.use24h;
+    applySettings();
+    updateSwitchUI(this.id, settings.use24h);
+    saveSettings();
   });
 }
