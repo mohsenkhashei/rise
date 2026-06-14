@@ -68,6 +68,12 @@ body {
   justify-content: center;
   align-items: center;
   padding: 2rem;
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.container.loaded {
+  opacity: 1;
 }
 
 /* Fliqlo-style Flip Clock */
@@ -235,6 +241,18 @@ body {
   color: var(--text-primary);
   font-style: italic;
   letter-spacing: 0.01em;
+  transition: font-size 0.3s ease;
+}
+
+/* Long Quote Styling Adjustments */
+.quote-container.long-quote {
+  padding: 1.4rem 2rem;
+  max-width: 750px;
+}
+
+.quote-container.long-quote .quote-text {
+  font-size: 1.05rem;
+  line-height: 1.5;
 }
 
 .quote-author {
