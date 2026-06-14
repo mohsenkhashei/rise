@@ -1,0 +1,326 @@
+/* Base Reset & Variables */
+:root {
+  --font-primary: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --card-bg: rgba(24, 24, 24, 0.95);
+  --card-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 4px 15px rgba(0, 0, 0, 0.4);
+  --glass-bg: rgba(15, 23, 42, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-primary);
+  background-color: #080b11;
+  color: var(--text-primary);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  user-select: none;
+}
+
+/* Wallpaper Background & Animations */
+.wallpaper-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+  transition: opacity 1.5s ease-in-out, transform 20s ease-out;
+  transform: scale(1.03);
+  opacity: 0;
+  background-color: #080b11;
+}
+
+.wallpaper-container.loaded {
+  opacity: 1;
+  transform: scale(1.0);
+}
+
+.wallpaper-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0.7) 100%);
+  z-index: 1;
+}
+
+/* Content Container */
+.container {
+  position: relative;
+  z-index: 2;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+/* Fliqlo-style Flip Clock */
+.clock-container {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 5vh;
+  perspective: 1000px;
+}
+
+.clock-separator {
+  font-family: var(--font-mono);
+  font-size: 110px;
+  font-weight: 700;
+  color: rgba(236, 236, 236, 0.7);
+  animation: blink 2s infinite;
+  align-self: center;
+  margin-top: -15px;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 0.2; }
+}
+
+/* Flip Card Component */
+.flip-card {
+  position: relative;
+  width: 200px;
+  height: 250px;
+  background-color: var(--card-bg);
+  border-radius: 24px;
+  box-shadow: var(--card-shadow);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  font-family: var(--font-mono);
+  font-size: 155px;
+  font-weight: 700;
+  color: #ececec;
+  text-align: center;
+}
+
+/* Hinge line dividing top and bottom halves */
+.flip-card::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: rgba(0, 0, 0, 0.55);
+  z-index: 5;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Card Halves */
+.card-half {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 50%;
+  overflow: hidden;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Static elements */
+.card-top {
+  top: 0;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.2);
+}
+
+.card-bottom {
+  bottom: 0;
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+  border-top: 0.5px solid rgba(255, 255, 255, 0.02);
+}
+
+/* Flipping elements */
+.card-top-flip {
+  top: 0;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.2);
+  transform-origin: bottom center;
+  background-color: #1a1a1a;
+  z-index: 3;
+  transform: rotateX(0deg);
+}
+
+.card-bottom-flip {
+  bottom: 0;
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+  border-top: 0.5px solid rgba(255, 255, 255, 0.02);
+  transform-origin: top center;
+  background-color: #161616;
+  z-index: 2;
+  transform: rotateX(90deg);
+}
+
+/* Text alignment inside halves */
+.card-top span,
+.card-top-flip span {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 250px; /* Full card height */
+  line-height: 250px;
+}
+
+.card-bottom span,
+.card-bottom-flip span {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 250px; /* Full card height */
+  line-height: 250px;
+}
+
+/* Animation Classes */
+.flip-card.flip .card-top-flip {
+  transform: rotateX(-90deg);
+  transition: transform 0.2s ease-in;
+}
+
+.flip-card.flip .card-bottom-flip {
+  transform: rotateX(0deg);
+  transition: transform 0.2s ease-out 0.2s;
+}
+
+/* Quote Box */
+.quote-container {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 1.8rem 2.5rem;
+  max-width: 700px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+  opacity: 0;
+  transform: translateY(15px);
+}
+
+.quote-container.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.quote-text {
+  font-size: 1.25rem;
+  font-weight: 300;
+  line-height: 1.6;
+  margin-bottom: 0.8rem;
+  color: var(--text-primary);
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+
+.quote-author {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Bottom Left: Attribution info */
+.attribution-container {
+  position: absolute;
+  bottom: 2rem;
+  left: 2rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 0.5rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.7);
+  transition: opacity 0.8s ease, background-color 0.3s ease;
+  opacity: 0;
+}
+
+.attribution-container.loaded {
+  opacity: 1;
+}
+
+.attribution-container:hover {
+  background: rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.attribution-icon {
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
+/* Bottom Right: Controls container */
+.controls-container {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 2;
+}
+
+.control-btn {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.control-btn:active {
+  transform: translateY(1px);
+}
+
+.refresh-icon {
+  fill: var(--text-primary);
+  transition: transform 0.5s ease;
+}
+
+.control-btn:hover .refresh-icon {
+  transform: rotate(180deg);
+}
