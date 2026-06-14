@@ -11,7 +11,7 @@
 // --- GitHub Data Repository Configurations ---
 // IMPORTANT: Replace 'YOUR-GITHUB-USERNAME' with your actual GitHub username
 // once your 'rise-data' repository is public.
-const GITHUB_USERNAME = 'YOUR-GITHUB-USERNAME'; 
+const GITHUB_USERNAME = 'mohsenkhashei'; 
 const QUOTES_URL = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/rise-data/main/quotes.json`;
 const WALLPAPERS_URL = `https://raw.githubusercontent.com/${GITHUB_USERNAME}/rise-data/main/wallpapers.json`;
 
