@@ -10,9 +10,9 @@
   --text-secondary: #cbd5e1;
   
   /* Viewport responsive sizing for Fliqlo Flip Clock */
-  --card-width: clamp(140px, 16vw, 200px);
-  --card-height: clamp(180px, 20vw, 250px);
-  --font-size: clamp(100px, 12vw, 155px);
+  --card-width: clamp(180px, 20vw, 260px);
+  --card-height: clamp(230px, 25vw, 325px);
+  --font-size: clamp(140px, 16vw, 210px);
 }
 
 * {
@@ -102,7 +102,7 @@ body {
 
 .clock-separator {
   font-family: var(--font-mono);
-  font-size: clamp(70px, 10vw, 110px);
+  font-size: clamp(110px, 13vw, 170px);
   font-weight: 700;
   color: rgba(236, 236, 236, 0.7);
   animation: blink 2s infinite;
@@ -483,4 +483,42 @@ body.hide-wallpaper .wallpaper-container {
 body.hide-wallpaper .attribution-container {
   display: none !important;
 }
+
+/* Top Left: Geolocation Info */
+.user-location-container {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 0.5rem 0.9rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.85);
+  transition: opacity 0.8s ease, background-color 0.3s ease;
+  opacity: 0;
+}
+
+.user-location-container.loaded {
+  opacity: 1;
+  transition-delay: 0.55s;
+}
+
+.user-location-container:hover {
+  background: rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.location-icon {
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
 

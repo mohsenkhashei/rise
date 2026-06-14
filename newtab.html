@@ -14,6 +14,12 @@
   <div class="wallpaper-container" id="wallpaper"></div>
   <div class="wallpaper-overlay"></div>
 
+  <!-- Top Left: User Location badge -->
+  <div class="user-location-container" id="user-location">
+    <span class="location-icon">📍</span>
+    <span class="location-text" id="user-location-text">Detecting location...</span>
+  </div>
+
   <!-- Main Content Layout -->
   <div class="container">
     <!-- Fliqlo-style Center Clock -->
@@ -31,6 +37,17 @@
       
       <!-- Minutes Flip Card -->
       <div class="flip-card" id="minutes-card">
+        <div class="card-half card-top"><span>00</span></div>
+        <div class="card-half card-bottom"><span>00</span></div>
+        <div class="card-half card-top-flip"><span>00</span></div>
+        <div class="card-half card-bottom-flip"><span>00</span></div>
+      </div>
+      
+      <!-- Colon Separator -->
+      <div class="clock-separator">:</div>
+      
+      <!-- Seconds Flip Card -->
+      <div class="flip-card" id="seconds-card">
         <div class="card-half card-top"><span>00</span></div>
         <div class="card-half card-bottom"><span>00</span></div>
         <div class="card-half card-top-flip"><span>00</span></div>

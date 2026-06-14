@@ -580,6 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initClock();
     initContent();
     initControls();
+    detectUserLocation();
     
     // 3. Reveal control bar staggered in CSS
     document.querySelector('.controls-container').classList.add('loaded');
@@ -590,9 +591,11 @@ document.addEventListener('DOMContentLoaded', () => {
 function initClock() {
   const hoursCard = document.getElementById('hours-card');
   const minutesCard = document.getElementById('minutes-card');
+  const secondsCard = document.getElementById('seconds-card');
   
   let currentHours = '';
   let currentMinutes = '';
+  let currentSeconds = '';
   
   function updateClock() {
     const now = new Date();
@@ -606,6 +609,7 @@ function initClock() {
     
     const hours = String(hoursInt).padStart(2, '0');
     const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
     
     if (hours !== currentHours) {
       flipCard(hoursCard, currentHours || '00', hours);
@@ -615,6 +619,11 @@ function initClock() {
     if (minutes !== currentMinutes) {
       flipCard(minutesCard, currentMinutes || '00', minutes);
       currentMinutes = minutes;
+    }
+    
+    if (seconds !== currentSeconds) {
+      flipCard(secondsCard, currentSeconds || '00', seconds);
+      currentSeconds = seconds;
     }
   }
   
@@ -922,5 +931,79 @@ function initControls() {
     applySettings();
     updateSwitchUI(this.id, settings.use24h);
     saveSettings();
+  });
+}
+
+// --- Geolocation & Reverse-Geocoding Engine (with 1h Caching) ---
+function detectUserLocation() {
+  const locationText = document.getElementById('user-location-text');
+  const locationBadge = document.getElementById('user-location');
+  
+  if (!navigator.geolocation) {
+    locationText.textContent = 'Location unsupported';
+    locationBadge.classList.add('loaded');
+    return;
+  }
+  
+  const now = Date.now();
+  storage.get(['cachedUserLocation', 'cachedLocationTime'], (res) => {
+    // Check if location is cached and fresh (< 1 hour = 3600000ms)
+    if (res.cachedUserLocation && res.cachedLocationTime && (now - res.cachedLocationTime < 3600000)) {
+      console.log("Rise: Loaded user location from local cache:", res.cachedUserLocation);
+      locationText.textContent = res.cachedUserLocation;
+      locationBadge.classList.add('loaded');
+      return;
+    }
+    
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        
+        try {
+          // Fetch reverse-geocoding from OpenStreetMap's free Nominatim API
+          const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10`);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          
+          const address = data.address || {};
+          const city = address.city || address.town || address.village || address.suburb || '';
+          const country = address.country || '';
+          
+          let locationStr = 'Earth';
+          if (city && country) {
+            locationStr = `${city}, ${country}`;
+          } else if (city) {
+            locationStr = city;
+          } else if (country) {
+            locationStr = country;
+          }
+          
+          locationText.textContent = locationStr;
+          locationBadge.classList.add('loaded');
+          
+          // Save to local cache
+          storage.set({
+            cachedUserLocation: locationStr,
+            cachedLocationTime: now
+          });
+          console.log("Rise: Geocoded user location:", locationStr);
+        } catch (err) {
+          console.warn("Rise: Location reverse-geocoding failed. Error:", err.message);
+          locationText.textContent = 'Location unavailable';
+          locationBadge.classList.add('loaded');
+        }
+      },
+      (error) => {
+        console.warn("Rise: Geolocation retrieval error:", error.message);
+        let errMsg = 'Location disabled';
+        if (error.code === error.PERMISSION_DENIED) {
+          errMsg = 'Location permission denied';
+        }
+        locationText.textContent = errMsg;
+        locationBadge.classList.add('loaded');
+      },
+      { timeout: 8000 }
+    );
   });
 }
