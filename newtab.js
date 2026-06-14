@@ -20,7 +20,8 @@ let settings = {
   showClock: true,
   showQuote: true,
   showWallpaper: true,
-  use24h: true
+  use24h: true,
+  showSeconds: true
 };
 
 // --- Curated Fallbacks (For Offline Use or Prior to Repository Setup) ---
@@ -848,6 +849,12 @@ function applySettings() {
     body.classList.add('hide-wallpaper');
   }
   
+  if (settings.showSeconds) {
+    body.classList.remove('hide-seconds');
+  } else {
+    body.classList.add('hide-seconds');
+  }
+  
   // Refresh clock format immediately if initialized
   if (clockTriggerFunc) {
     clockTriggerFunc();
@@ -860,6 +867,7 @@ function syncSettingsUI() {
   updateSwitchUI('toggle-quote', settings.showQuote);
   updateSwitchUI('toggle-wallpaper', settings.showWallpaper);
   updateSwitchUI('toggle-24h', settings.use24h);
+  updateSwitchUI('toggle-seconds', settings.showSeconds);
 }
 
 function updateSwitchUI(switchId, isChecked) {
@@ -932,6 +940,13 @@ function initControls() {
     updateSwitchUI(this.id, settings.use24h);
     saveSettings();
   });
+  
+  document.getElementById('toggle-seconds').addEventListener('click', function() {
+    settings.showSeconds = !settings.showSeconds;
+    applySettings();
+    updateSwitchUI(this.id, settings.showSeconds);
+    saveSettings();
+  });
 }
 
 // --- Geolocation & Reverse-Geocoding Engine (with 1h Caching) ---
@@ -940,8 +955,7 @@ function detectUserLocation() {
   const locationBadge = document.getElementById('user-location');
   
   if (!navigator.geolocation) {
-    locationText.textContent = 'Location unsupported';
-    locationBadge.classList.add('loaded');
+    locationBadge.style.display = 'none';
     return;
   }
   
@@ -990,18 +1004,12 @@ function detectUserLocation() {
           console.log("Rise: Geocoded user location:", locationStr);
         } catch (err) {
           console.warn("Rise: Location reverse-geocoding failed. Error:", err.message);
-          locationText.textContent = 'Location unavailable';
-          locationBadge.classList.add('loaded');
+          locationBadge.style.display = 'none';
         }
       },
       (error) => {
         console.warn("Rise: Geolocation retrieval error:", error.message);
-        let errMsg = 'Location disabled';
-        if (error.code === error.PERMISSION_DENIED) {
-          errMsg = 'Location permission denied';
-        }
-        locationText.textContent = errMsg;
-        locationBadge.classList.add('loaded');
+        locationBadge.style.display = 'none';
       },
       { timeout: 8000 }
     );

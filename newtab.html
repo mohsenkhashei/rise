@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="newtab.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=Outfit:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 </head>
 <body>
   <!-- Background Wallpaper Container -->
@@ -44,7 +44,7 @@
       </div>
       
       <!-- Colon Separator -->
-      <div class="clock-separator">:</div>
+      <div class="clock-separator seconds-separator">:</div>
       
       <!-- Seconds Flip Card -->
       <div class="flip-card" id="seconds-card">
@@ -107,6 +107,12 @@
       <div class="settings-item">
         <span class="settings-label" id="lbl-24h">24-Hour Format</span>
         <button role="switch" aria-checked="true" aria-labelledby="lbl-24h" class="switch" id="toggle-24h">
+          <span class="switch-thumb"></span>
+        </button>
+      </div>
+      <div class="settings-item">
+        <span class="settings-label" id="lbl-seconds">Show Seconds</span>
+        <button role="switch" aria-checked="true" aria-labelledby="lbl-seconds" class="switch" id="toggle-seconds">
           <span class="switch-thumb"></span>
         </button>
       </div>
