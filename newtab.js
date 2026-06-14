@@ -520,6 +520,9 @@ const FALLBACK_WALLPAPERS = [
   }
 ];
 
+// In-memory fallback if both chrome.storage and localStorage are blocked (e.g. file:// protocol limits)
+const memoryStorage = {};
+
 // --- Cross-Browser Storage Wrapper (Supports chrome.storage.local & localStorage) ---
 const storage = {
   get: (keys, callback) => {
@@ -527,10 +530,17 @@ const storage = {
       chrome.storage.local.get(keys, callback);
     } else {
       const result = {};
-      keys.forEach(key => {
-        const val = localStorage.getItem(key);
-        result[key] = val ? JSON.parse(val) : null;
-      });
+      try {
+        keys.forEach(key => {
+          const val = localStorage.getItem(key);
+          result[key] = val ? JSON.parse(val) : null;
+        });
+      } catch (e) {
+        console.warn("Rise: localStorage is blocked or unavailable, using memory fallback.", e.message);
+        keys.forEach(key => {
+          result[key] = memoryStorage[key] || null;
+        });
+      }
       callback(result);
     }
   },
@@ -538,8 +548,15 @@ const storage = {
     if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
       chrome.storage.local.set(items, callback);
     } else {
-      for (const key in items) {
-        localStorage.setItem(key, JSON.stringify(items[key]));
+      try {
+        for (const key in items) {
+          localStorage.setItem(key, JSON.stringify(items[key]));
+        }
+      } catch (e) {
+        console.warn("Rise: localStorage set blocked or unavailable, using memory fallback.", e.message);
+        for (const key in items) {
+          memoryStorage[key] = items[key];
+        }
       }
       if (callback) callback();
     }
