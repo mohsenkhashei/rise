@@ -13,9 +13,9 @@
   --text-secondary: #cbd5e1;
   
   /* Viewport responsive sizing for Fliqlo Flip Clock */
-  --card-width: clamp(180px, 20vw, 260px);
-  --card-height: clamp(230px, 25vw, 325px);
-  --font-size: clamp(140px, 16vw, 210px);
+  --card-width: clamp(200px, 22vw, 290px);
+  --card-height: clamp(260px, 28vw, 370px);
+  --font-size: clamp(160px, 18vw, 240px);
 }
 
 * {
@@ -105,7 +105,7 @@ body {
 
 .clock-separator {
   font-family: var(--font-mono);
-  font-size: clamp(110px, 13vw, 170px);
+  font-size: clamp(130px, 15vw, 200px);
   font-weight: 700;
   color: rgba(236, 236, 236, 0.7);
   animation: blink 2s infinite;
