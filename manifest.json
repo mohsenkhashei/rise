@@ -2,6 +2,7 @@
   "manifest_version": 3,
   "name": "Rise",
   "version": "1.0.0",
+  "author": "Mohsen",
   "description": "A minimalist daily quote and wallpaper new tab page featuring a Fliqlo-style clock.",
   "chrome_url_overrides": {
     "newtab": "newtab.html"
