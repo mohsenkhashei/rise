@@ -1,2 +1,4 @@
 .DS_Store
 *.swift
+validate_data.py
+.github/
